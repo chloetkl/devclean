@@ -23,7 +23,12 @@ dashboard_router = APIRouter(tags=["Dashboard"])
 
 templates = Jinja2Templates(directory="templates")
 
-ISSUE_CATEGORIES = ("DUPLICATE_CODE", "DEAD_CODE", "DOC_DRIFT")
+ISSUE_CATEGORIES = (
+    "DOC_DRIFT",
+    "COMPLEX_DEAD_CODE",
+    "INCONSISTENT_PATTERNS",
+    "INCOMPLETE_ERROR_HANDLING",
+)
 
 
 def _check_configuration() -> dict[str, bool]:
@@ -126,6 +131,14 @@ async def retry_failed_analysis(
     if analysis_record.analysis_status != "error":
         raise HTTPException(status_code=400, detail="Only failed analyses can be retried")
 
+    max_retries = 3
+    if analysis_record.retry_count >= max_retries:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum retry limit ({max_retries}) reached",
+        )
+
+    analysis_record.retry_count += 1
     analysis_record.analysis_status = "pending"
     analysis_record.error_message = None
     analysis_record.devin_session_id = None
@@ -325,6 +338,7 @@ def _serialize_analysis_record(analysis: CodeQualityAnalysis) -> dict:
         "issues_found": issues_found,
         "issue_count": analysis.issue_count,
         "error_message": analysis.error_message,
+        "retry_count": analysis.retry_count,
         "initiated_at": analysis.initiated_at.isoformat() if analysis.initiated_at else None,
         "completed_at": analysis.completed_at.isoformat() if analysis.completed_at else None,
         "duration_seconds": analysis.duration_seconds,

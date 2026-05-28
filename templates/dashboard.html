@@ -130,14 +130,17 @@
                     <div class="text-2xl font-bold font-mono text-gray-800">{{ statistics.total_issues_detected }}</div>
                     {% if statistics.total_issues_detected > 0 %}
                     <div class="flex flex-wrap gap-1 mt-1">
-                        {% if statistics.issues_by_category.DUPLICATE_CODE > 0 %}
-                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-100">DUP {{ statistics.issues_by_category.DUPLICATE_CODE }}</span>
-                        {% endif %}
-                        {% if statistics.issues_by_category.DEAD_CODE > 0 %}
-                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-100">DEAD {{ statistics.issues_by_category.DEAD_CODE }}</span>
-                        {% endif %}
                         {% if statistics.issues_by_category.DOC_DRIFT > 0 %}
                         <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-100">DRIFT {{ statistics.issues_by_category.DOC_DRIFT }}</span>
+                        {% endif %}
+                        {% if statistics.issues_by_category.COMPLEX_DEAD_CODE > 0 %}
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-100">DEAD {{ statistics.issues_by_category.COMPLEX_DEAD_CODE }}</span>
+                        {% endif %}
+                        {% if statistics.issues_by_category.INCONSISTENT_PATTERNS > 0 %}
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-100">PATTERNS {{ statistics.issues_by_category.INCONSISTENT_PATTERNS }}</span>
+                        {% endif %}
+                        {% if statistics.issues_by_category.INCOMPLETE_ERROR_HANDLING > 0 %}
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-100">ERRORS {{ statistics.issues_by_category.INCOMPLETE_ERROR_HANDLING }}</span>
                         {% endif %}
 
                     </div>
@@ -182,9 +185,10 @@
                         <div>
                             <div class="text-xs font-semibold text-gray-700 mb-0.5">Issue Categories</div>
                             <div class="flex flex-col gap-1 mt-1">
-                                <span class="text-[10px] text-gray-500">🔁 Duplicate Code</span>
-                                <span class="text-[10px] text-gray-500">💀 Dead Code</span>
                                 <span class="text-[10px] text-gray-500">📝 Doc Drift</span>
+                                <span class="text-[10px] text-gray-500">💀 Complex Dead Code</span>
+                                <span class="text-[10px] text-gray-500">🔀 Inconsistent Patterns</span>
+                                <span class="text-[10px] text-gray-500">⚠️ Incomplete Error Handling</span>
                             </div>
                         </div>
                     </div>

@@ -15,10 +15,10 @@ class TestDevinApiClientPromptGeneration:
         assert "myorg/myrepo" in prompt
         assert "#42" in prompt
         assert "Add user endpoint" in prompt
-        assert "DUPLICATE_CODE" in prompt
-        assert "DEAD_CODE" in prompt
         assert "DOC_DRIFT" in prompt
-        assert "PLATFORM_BUG" not in prompt
+        assert "COMPLEX_DEAD_CODE" in prompt
+        assert "INCONSISTENT_PATTERNS" in prompt
+        assert "INCOMPLETE_ERROR_HANDLING" in prompt
 
     def test_scan_prompt_includes_repo_name(self):
         prompt = DevinApiClient.build_scan_prompt(
@@ -26,7 +26,7 @@ class TestDevinApiClientPromptGeneration:
         )
         assert "myorg/myrepo" in prompt
         assert "full repository scan" in prompt.lower()
-        assert "DUPLICATE_CODE" in prompt
+        assert "DOC_DRIFT" in prompt
 
     def test_pr_analysis_prompt_includes_pr_url(self):
         prompt = DevinApiClient.build_pr_analysis_prompt(
@@ -80,7 +80,7 @@ class TestStructuredOutputSchema:
         items_schema = CODE_QUALITY_STRUCTURED_OUTPUT_SCHEMA["properties"]["issues"]["items"]
         category_prop = items_schema["properties"]["category"]
         assert "enum" in category_prop
-        assert "DUPLICATE_CODE" in category_prop["enum"]
-        assert "DEAD_CODE" in category_prop["enum"]
         assert "DOC_DRIFT" in category_prop["enum"]
-        assert "PLATFORM_BUG" not in category_prop["enum"]
+        assert "COMPLEX_DEAD_CODE" in category_prop["enum"]
+        assert "INCONSISTENT_PATTERNS" in category_prop["enum"]
+        assert "INCOMPLETE_ERROR_HANDLING" in category_prop["enum"]

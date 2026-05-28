@@ -40,6 +40,7 @@ class CodeQualityAnalysis(DatabaseBaseModel):
     issue_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     initiated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)

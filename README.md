@@ -4,11 +4,14 @@ Event-driven automation that detects code quality issues in a GitHub repository 
 
 ## Issue Categories
 
+These categories target issues that require semantic understanding — things linters can't catch.
+
 | Code | Category | Description |
 |------|----------|-------------|
-| `DUPLICATE_CODE` | Duplicate Code | Identical or near-identical blocks repeated across files or within a file |
-| `DEAD_CODE` | Dead Code | Unreferenced functions, variables, imports, or components |
 | `DOC_DRIFT` | Documentation Drift | Code behaviour has diverged from its inline docs, README, or API docs |
+| `COMPLEX_DEAD_CODE` | Complex Dead Code | Unreachable paths, permanently-off feature flags, transitively unused modules (not simple unused imports) |
+| `INCONSISTENT_PATTERNS` | Inconsistent Patterns | Deviations from dominant coding conventions across the codebase |
+| `INCOMPLETE_ERROR_HANDLING` | Incomplete Error Handling | Overly broad catches, silently swallowed errors, missing error cases that sibling functions handle |
 
 ## Architecture
 

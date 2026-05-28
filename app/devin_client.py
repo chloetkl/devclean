@@ -31,9 +31,10 @@ CODE_QUALITY_STRUCTURED_OUTPUT_SCHEMA = {
                     "category": {
                         "type": "string",
                         "enum": [
-                            "DUPLICATE_CODE",
-                            "DEAD_CODE",
                             "DOC_DRIFT",
+                            "COMPLEX_DEAD_CODE",
+                            "INCONSISTENT_PATTERNS",
+                            "INCOMPLETE_ERROR_HANDLING",
                         ],
                         "description": "Issue category",
                     },
@@ -71,17 +72,31 @@ CODE_QUALITY_STRUCTURED_OUTPUT_SCHEMA = {
 
 
 ISSUE_CATEGORIES_BLOCK = (
-    "1. DUPLICATE_CODE — identical or near-identical code blocks "
-    "repeated across files or within the same file\n"
-    "2. DEAD_CODE — unreferenced functions, variables, imports, or components\n"
-    "3. DOC_DRIFT — code behaviour that has diverged from its inline docs, "
-    "README, or API docs. For this category, be thorough: check route "
-    "definitions, handler functions, middleware changes, schema/model "
-    "changes that affect API contracts, and any auto-generated API specs. "
-    "Compare every discovered endpoint against the documentation — identify "
-    "endpoints that exist in code but are not documented, endpoints whose "
-    "documentation is outdated (wrong parameters, response formats, status "
-    "codes), and documentation for endpoints that no longer exist in code."
+    "1. DOC_DRIFT \u2014 code behaviour that has diverged from its inline "
+    "docs, README, or API docs. Be thorough: check route definitions, "
+    "handler functions, middleware changes, schema/model changes that "
+    "affect API contracts, and any auto-generated API specs. Compare "
+    "every discovered endpoint against the documentation \u2014 identify "
+    "endpoints that exist in code but are not documented, endpoints "
+    "whose documentation is outdated (wrong parameters, response "
+    "formats, status codes), and documentation for endpoints that no "
+    "longer exist in code.\n"
+    "2. COMPLEX_DEAD_CODE \u2014 code that is technically unreachable or "
+    "unused but cannot be caught by simple linters. Examples: functions "
+    "only called via dead paths, feature flags that are permanently off, "
+    "entire modules that nothing imports transitively, methods overridden "
+    "but never invoked through any call chain. Do NOT flag simple unused "
+    "imports or variables \u2014 those belong to a linter.\n"
+    "3. INCONSISTENT_PATTERNS \u2014 deviations from the dominant coding "
+    "conventions in the repository. Examples: 90% of endpoints raise "
+    "HTTPException but a few return raw dicts with status codes; most "
+    "models use `created_at` but some use `date_created`; inconsistent "
+    "naming, return types, or error shapes across sibling functions.\n"
+    "4. INCOMPLETE_ERROR_HANDLING \u2014 functions that catch exceptions too "
+    "broadly (e.g. bare `except Exception`), silently swallow errors, "
+    "or omit error cases that sibling functions handle. Also flag async "
+    "code missing proper cancellation/cleanup and API endpoints that "
+    "return 500 instead of a meaningful error response."
 )
 
 
@@ -151,7 +166,7 @@ class DevinApiClient:
             f"\n"
             f"Analyse only the diff of PR #{pr_number} (\"{pr_title}\"): {pr_url}\n"
             f"\n"
-            f"Check for these three issue categories:\n"
+            f"Check for these four issue categories:\n"
             f"{ISSUE_CATEGORIES_BLOCK}\n"
             f"\n"
             f"If NO issues are found:\n"
@@ -187,11 +202,11 @@ class DevinApiClient:
             f"```\n"
             f"\n"
             f"## 3. WHY\n"
-            f"[1-2 sentences: which of the 3 categories this falls "
+            f"[1-2 sentences: which of the 4 categories this falls "
             f"under and its impact on the codebase]\n"
             f"---\n"
             f"\n"
-            f"Be thorough: check for all three categories in the "
+            f"Be thorough: check for all four categories in the "
             f"PR diff."
         )
 
@@ -233,7 +248,7 @@ class DevinApiClient:
             f"\n"
             f"{scan_instruction}\n"
             f"\n"
-            f"Check for these three issue categories:\n"
+            f"Check for these four issue categories:\n"
             f"{ISSUE_CATEGORIES_BLOCK}\n"
             f"\n"
             f"If NO issues are found:\n"
@@ -270,7 +285,7 @@ class DevinApiClient:
             f"```\n"
             f"\n"
             f"## 3. WHY\n"
-            f"[1-2 sentences: which of the 3 categories this falls "
+            f"[1-2 sentences: which of the 4 categories this falls "
             f"under and its impact on the codebase]\n"
             f"---\n"
             f"\n"
