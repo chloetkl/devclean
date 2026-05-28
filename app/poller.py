@@ -74,7 +74,11 @@ async def _process_completed_session(analysis_id: int, session_details: dict) ->
 
         now = datetime.now(timezone.utc)
         analysis_record.completed_at = now
-        delta = now - analysis_record.initiated_at
+        initiated = analysis_record.initiated_at
+        # SQLite returns naive datetimes; make it UTC-aware before subtracting
+        if initiated.tzinfo is None:
+            initiated = initiated.replace(tzinfo=timezone.utc)
+        delta = now - initiated
         analysis_record.duration_seconds = int(delta.total_seconds())
 
         if session_status == "error":
@@ -147,7 +151,10 @@ async def mark_analysis_error(analysis_id: int, error_message: str) -> None:
             analysis_record.error_message = error_message
             now = datetime.now(timezone.utc)
             analysis_record.completed_at = now
-            delta = now - analysis_record.initiated_at
+            initiated = analysis_record.initiated_at
+            if initiated.tzinfo is None:
+                initiated = initiated.replace(tzinfo=timezone.utc)
+            delta = now - initiated
             analysis_record.duration_seconds = int(delta.total_seconds())
             await database_session.commit()
 
