@@ -8,7 +8,7 @@ class ApplicationSettings(BaseSettings):
 
     github_webhook_secret: str = ""
 
-    database_url: str = "sqlite+aiosqlite:///./data/autoquality.db"
+    database_url: str = "sqlite+aiosqlite:///./data/devclean.db"
 
     session_poll_interval_seconds: int = 30
     session_poll_timeout_seconds: int = 1800

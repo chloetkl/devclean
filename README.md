@@ -129,7 +129,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 | `DEVIN_ORGANIZATION_ID` | — | Devin organization ID |
 | `DEVIN_API_BASE_URL` | `https://api.devin.ai` | Devin API base URL |
 | `GITHUB_WEBHOOK_SECRET` | — | GitHub webhook secret for signature verification |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./data/autoquality.db` | Database connection string |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./data/devclean.db` | Database connection string |
 | `SESSION_POLL_INTERVAL_SECONDS` | `30` | How often to poll Devin session status |
 | `SESSION_POLL_TIMEOUT_SECONDS` | `1800` | Maximum time to wait for session completion |
 
