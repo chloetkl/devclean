@@ -41,8 +41,14 @@ async def schedule_session_polling(
             is_settled_running = (
                 session_status == "running" and session_status_detail in SETTLED_STATUS_DETAILS
             )
+            # If Devin has already created a fix PR, treat the session as done
+            # immediately — don't wait for CI checks or session termination.
+            has_fix_pr = bool(
+                (session_details.get("structured_output") or {}).get("fix_pr_url")
+                or (session_details.get("pull_requests") or [])
+            )
 
-            if is_terminal or is_settled_running:
+            if is_terminal or is_settled_running or has_fix_pr:
                 await _process_completed_session(analysis_id, session_details)
                 return
 
