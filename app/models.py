@@ -21,6 +21,8 @@ class CodeQualityAnalysis(DatabaseBaseModel):
         String(255), nullable=False, index=True
     )
 
+    scan_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
     source_pr_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     source_pr_title: Mapped[str | None] = mapped_column(String(500), nullable=True)
     source_pr_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

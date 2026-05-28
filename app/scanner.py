@@ -16,6 +16,7 @@ repository_analysis_router = APIRouter(tags=["Repository Analysis"])
 
 class ManualScanRequest(BaseModel):
     repository_full_name: str
+    scan_path: str | None = None
 
 
 @repository_analysis_router.post("/api/repo/analyses", status_code=202)
@@ -31,6 +32,7 @@ async def trigger_manual_scan(
         repository_full_name=scan_request.repository_full_name,
         trigger_type="manual_trigger",
         analysis_status="pending",
+        scan_path=scan_request.scan_path,
     )
     database_session.add(analysis_record)
     await database_session.commit()
@@ -42,6 +44,7 @@ async def trigger_manual_scan(
         _create_scan_session_and_start_polling,
         analysis_id,
         scan_request.repository_full_name,
+        scan_request.scan_path,
     )
 
     return {
@@ -53,15 +56,21 @@ async def trigger_manual_scan(
 async def _create_scan_session_and_start_polling(
     analysis_id: int,
     repository_full_name: str,
+    scan_path: str | None = None,
 ) -> None:
     devin_client = get_devin_api_client()
     try:
-        prompt = DevinApiClient.build_full_scan_prompt(repository_full_name)
+        prompt = DevinApiClient.build_scan_prompt(
+            repository_full_name, scan_path=scan_path
+        )
         session_response = await devin_client.create_code_quality_session(
             prompt=prompt,
             repository_full_name=repository_full_name,
             session_tags=["devclean", "code-quality", "full-scan"],
-            session_title=f"Code quality scan: {repository_full_name}",
+            session_title=(
+                f"Code quality scan: {repository_full_name}"
+                + (f" ({scan_path})" if scan_path else "")
+            ),
         )
 
         session_id = session_response.get("session_id", "")

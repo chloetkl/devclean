@@ -23,7 +23,7 @@ dashboard_router = APIRouter(tags=["Dashboard"])
 
 templates = Jinja2Templates(directory="templates")
 
-ISSUE_CATEGORIES = ("DUPLICATE_CODE", "DEAD_CODE", "DOC_DRIFT", "PLATFORM_BUG")
+ISSUE_CATEGORIES = ("DUPLICATE_CODE", "DEAD_CODE", "DOC_DRIFT")
 
 
 def _check_configuration() -> dict[str, bool]:
@@ -154,6 +154,7 @@ async def retry_failed_analysis(
             _retry_scan_analysis,
             analysis_id,
             repo,
+            analysis_record.scan_path,
         )
 
     return {"message": "Analysis queued for retry", "analysis_id": analysis_id}
@@ -190,10 +191,13 @@ async def _retry_pr_analysis(
 async def _retry_scan_analysis(
     analysis_id: int,
     repository_full_name: str,
+    scan_path: str | None = None,
 ) -> None:
     devin_client = get_devin_api_client()
     try:
-        prompt = DevinApiClient.build_full_scan_prompt(repository_full_name)
+        prompt = DevinApiClient.build_scan_prompt(
+            repository_full_name, scan_path=scan_path
+        )
         session_response = await devin_client.create_code_quality_session(
             prompt=prompt,
             repository_full_name=repository_full_name,
@@ -310,6 +314,7 @@ def _serialize_analysis_record(analysis: CodeQualityAnalysis) -> dict:
         "id": analysis.id,
         "trigger_type": analysis.trigger_type,
         "repository_full_name": analysis.repository_full_name,
+        "scan_path": analysis.scan_path,
         "source_pr_number": analysis.source_pr_number,
         "source_pr_title": analysis.source_pr_title,
         "source_pr_url": analysis.source_pr_url,

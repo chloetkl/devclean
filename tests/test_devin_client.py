@@ -18,10 +18,10 @@ class TestDevinApiClientPromptGeneration:
         assert "DUPLICATE_CODE" in prompt
         assert "DEAD_CODE" in prompt
         assert "DOC_DRIFT" in prompt
-        assert "PLATFORM_BUG" in prompt
+        assert "PLATFORM_BUG" not in prompt
 
-    def test_full_scan_prompt_includes_repo_name(self):
-        prompt = DevinApiClient.build_full_scan_prompt(
+    def test_scan_prompt_includes_repo_name(self):
+        prompt = DevinApiClient.build_scan_prompt(
             repository_full_name="myorg/myrepo"
         )
         assert "myorg/myrepo" in prompt
@@ -37,11 +37,20 @@ class TestDevinApiClientPromptGeneration:
         )
         assert "https://github.com/myorg/myrepo/pull/10" in prompt
 
-    def test_full_scan_prompt_uses_adhoc_label(self):
-        prompt = DevinApiClient.build_full_scan_prompt(
+    def test_scan_prompt_uses_adhoc_label(self):
+        prompt = DevinApiClient.build_scan_prompt(
             repository_full_name="myorg/myrepo"
         )
         assert "adhoc" in prompt.lower()
+
+    def test_scan_prompt_with_path_scopes_to_folder(self):
+        prompt = DevinApiClient.build_scan_prompt(
+            repository_full_name="myorg/myrepo",
+            scan_path="src/utils",
+        )
+        assert "src/utils" in prompt
+        assert "folder audit" in prompt.lower()
+        assert "full repository scan" not in prompt.lower()
 
     def test_session_web_url_is_correct(self):
         client = DevinApiClient(
@@ -74,4 +83,4 @@ class TestStructuredOutputSchema:
         assert "DUPLICATE_CODE" in category_prop["enum"]
         assert "DEAD_CODE" in category_prop["enum"]
         assert "DOC_DRIFT" in category_prop["enum"]
-        assert "PLATFORM_BUG" in category_prop["enum"]
+        assert "PLATFORM_BUG" not in category_prop["enum"]

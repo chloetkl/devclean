@@ -9,7 +9,6 @@ Event-driven automation that detects code quality issues in a GitHub repository 
 | `DUPLICATE_CODE` | Duplicate Code | Identical or near-identical blocks repeated across files or within a file |
 | `DEAD_CODE` | Dead Code | Unreferenced functions, variables, imports, or components |
 | `DOC_DRIFT` | Documentation Drift | Code behaviour has diverged from its inline docs, README, or API docs |
-| `PLATFORM_BUG` | Platform-Breaking Bug | Logic errors or regressions likely to break functionality on mobile and/or desktop |
 
 ## Architecture
 
@@ -30,7 +29,7 @@ Event-driven automation that detects code quality issues in a GitHub repository 
 ### Triggers
 
 1. **PR Webhook** — On `pull_request.opened` from GitHub, the system analyses the diff for code quality issues.
-2. **Manual Trigger** — A button on the dashboard (or `POST /api/repo/analyses`) kicks off a full repository scan.
+2. **Manual Trigger** — A button on the dashboard (or `POST /api/repo/analyses`) kicks off a repository scan. An optional `scan_path` parameter lets you scope the audit to a specific folder instead of the full repo.
 
 ### Bot Loop Prevention
 
@@ -41,7 +40,7 @@ Any PR opened by `devin-ai-integration[bot]` is silently ignored to prevent feed
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/api/github/events` | GitHub webhook receiver |
-| `POST` | `/api/repo/analyses` | Manual full-repo scan trigger |
+| `POST` | `/api/repo/analyses` | Manual scan trigger (supports optional `scan_path`) |
 | `GET` | `/api/analyses` | List all analyses (paginated) |
 | `GET` | `/api/analyses/{id}` | Get single analysis |
 | `POST` | `/api/analyses/{id}/retry` | Retry a failed analysis (re-spawns Devin session) |
@@ -58,6 +57,7 @@ Single `analyses` table:
 | `id` | INTEGER | Primary key |
 | `trigger_type` | TEXT | `"pull_request_webhook"` or `"manual_trigger"` |
 | `repository_full_name` | TEXT | e.g. `owner/repo` |
+| `scan_path` | TEXT | Folder path to scope the scan (optional) |
 | `source_pr_number` | INTEGER | Source PR number (webhook only) |
 | `source_pr_title` | TEXT | Source PR title |
 | `source_pr_url` | TEXT | Source PR URL |

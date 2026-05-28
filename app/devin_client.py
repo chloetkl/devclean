@@ -34,7 +34,6 @@ CODE_QUALITY_STRUCTURED_OUTPUT_SCHEMA = {
                             "DUPLICATE_CODE",
                             "DEAD_CODE",
                             "DOC_DRIFT",
-                            "PLATFORM_BUG",
                         ],
                         "description": "Issue category",
                     },
@@ -76,9 +75,13 @@ ISSUE_CATEGORIES_BLOCK = (
     "repeated across files or within the same file\n"
     "2. DEAD_CODE — unreferenced functions, variables, imports, or components\n"
     "3. DOC_DRIFT — code behaviour that has diverged from its inline docs, "
-    "README, or API docs\n"
-    "4. PLATFORM_BUG — logic errors or regressions that break functionality "
-    "on mobile and/or desktop"
+    "README, or API docs. For this category, be thorough: check route "
+    "definitions, handler functions, middleware changes, schema/model "
+    "changes that affect API contracts, and any auto-generated API specs. "
+    "Compare every discovered endpoint against the documentation — identify "
+    "endpoints that exist in code but are not documented, endpoints whose "
+    "documentation is outdated (wrong parameters, response formats, status "
+    "codes), and documentation for endpoints that no longer exist in code."
 )
 
 
@@ -148,30 +151,32 @@ class DevinApiClient:
             f"\n"
             f"Analyse only the diff of PR #{pr_number} (\"{pr_title}\"): {pr_url}\n"
             f"\n"
-            f"Check for these four issue categories:\n"
+            f"Check for these three issue categories:\n"
             f"{ISSUE_CATEGORIES_BLOCK}\n"
             f"\n"
             f"If NO issues are found:\n"
             f"- Do not open any PR.\n"
             f"\n"
             f"If issues ARE found:\n"
-            f"- Open a single fix PR against the main branch of {repository_full_name}.\n"
-            f'- Title the PR exactly: "code quality fix - PR #{pr_number} - '
-            f'[CATEGORY] - [one-line description]"\n'
+            f"- Open a single fix PR against the main branch of "
+            f"{repository_full_name}.\n"
+            f'- Title the PR exactly: "code quality fix - '
+            f'PR #{pr_number} - [CATEGORY] - [one-line description]"\n'
             f"- Structure the PR body using this exact format:\n"
             f"\n"
             f"---\n"
             f"**Original PR / Trigger:** {pr_url}\n"
             f"\n"
             f"## 1. TITLE\n"
-            f"code quality fix — PR #{pr_number} — [CATEGORY] — [issue description]\n"
+            f"code quality fix — PR #{pr_number} — [CATEGORY] — "
+            f"[issue description]\n"
             f"Original PR that this is fixing: {pr_title}\n"
             f"\n"
             f"## 2. WHAT\n"
             f"**No. of issues detected:** [N]\n"
             f"\n"
             f"[For each issue:]\n"
-            f"- **File:** `[file path]` · Scope: [Mobile / Desktop / Mobile & Desktop]\n"
+            f"- **File:** `[file path]`\n"
             f"  - **Before:**\n"
             f"```\n"
             f"[code snippet]\n"
@@ -182,45 +187,79 @@ class DevinApiClient:
             f"```\n"
             f"\n"
             f"## 3. WHY\n"
-            f"[1-2 sentences: which of the 4 categories this falls under and its "
-            f"impact on the codebase]\n"
+            f"[1-2 sentences: which of the 3 categories this falls "
+            f"under and its impact on the codebase]\n"
             f"---\n"
             f"\n"
-            f"Be thorough: check for all four categories in the PR diff."
+            f"Be thorough: check for all three categories in the "
+            f"PR diff."
         )
 
     @staticmethod
-    def build_full_scan_prompt(repository_full_name: str) -> str:
+    def build_scan_prompt(
+        repository_full_name: str,
+        scan_path: str | None = None,
+    ) -> str:
+        if scan_path:
+            scope_desc = (
+                f"a folder audit of `{scan_path}` in "
+                f"{repository_full_name}"
+            )
+            scan_instruction = (
+                f"Scan only the folder `{scan_path}` in "
+                f"{repository_full_name}."
+            )
+            thoroughness = (
+                f"Be thorough: scan every file under "
+                f"`{scan_path}`."
+            )
+        else:
+            scope_desc = (
+                f"a full repository scan of "
+                f"{repository_full_name}"
+            )
+            scan_instruction = (
+                f"Perform a full repository scan of "
+                f"{repository_full_name}."
+            )
+            thoroughness = (
+                "Be thorough: scan the entire codebase, "
+                "not just the main entry point."
+            )
+
         return (
-            f"You are a code quality agent performing a full repository scan of "
-            f"{repository_full_name}.\n"
+            f"You are a code quality agent performing "
+            f"{scope_desc}.\n"
             f"\n"
-            f"Perform a full repository scan of {repository_full_name}.\n"
+            f"{scan_instruction}\n"
             f"\n"
-            f"Check for these four issue categories:\n"
+            f"Check for these three issue categories:\n"
             f"{ISSUE_CATEGORIES_BLOCK}\n"
             f"\n"
             f"If NO issues are found:\n"
             f"- Do not open any PR.\n"
             f"\n"
             f"If issues ARE found:\n"
-            f"- Open a single fix PR against the main branch of {repository_full_name}.\n"
+            f"- Open a single fix PR against the main branch of "
+            f"{repository_full_name}.\n"
             f'- Title the PR exactly: "code quality fix - adhoc - '
             f'[CATEGORY] - [one-line description]"\n'
             f"- Structure the PR body using this exact format:\n"
             f"\n"
             f"---\n"
-            f"**Original PR / Trigger:** Adhoc full repository scan\n"
+            f"**Original PR / Trigger:** Adhoc scan\n"
             f"\n"
             f"## 1. TITLE\n"
-            f"code quality fix — adhoc — [CATEGORY] — [issue description]\n"
-            f"Original PR that this is fixing or adhoc run: Adhoc run\n"
+            f"code quality fix — adhoc — [CATEGORY] — "
+            f"[issue description]\n"
+            f"Original PR that this is fixing or adhoc run: "
+            f"Adhoc run\n"
             f"\n"
             f"## 2. WHAT\n"
             f"**No. of issues detected:** [N]\n"
             f"\n"
             f"[For each issue:]\n"
-            f"- **File:** `[file path]` · Scope: [Mobile / Desktop / Mobile & Desktop]\n"
+            f"- **File:** `[file path]`\n"
             f"  - **Before:**\n"
             f"```\n"
             f"[code snippet]\n"
@@ -231,9 +270,9 @@ class DevinApiClient:
             f"```\n"
             f"\n"
             f"## 3. WHY\n"
-            f"[1-2 sentences: which of the 4 categories this falls under and its "
-            f"impact on the codebase]\n"
+            f"[1-2 sentences: which of the 3 categories this falls "
+            f"under and its impact on the codebase]\n"
             f"---\n"
             f"\n"
-            f"Be thorough: scan the entire codebase, not just the main entry point."
+            f"{thoroughness}"
         )
