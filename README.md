@@ -5,6 +5,8 @@ Event-driven automation that detects code quality issues in a GitHub repository 
 **[DevClean Live](https://devclean.onrender.com/dashboard)**
 **[Loom Demo](https://www.loom.com/share/377d86e5cb564678b98111154d93ec64)**
 
+> **Try it out:** PRs can be created on [chloetkl/superset](https://github.com/chloetkl/superset) to test DevClean in action.
+
 ## Issue Categories
 
 These categories target issues that require semantic understanding of the whole repository — issues linters can't catch.
