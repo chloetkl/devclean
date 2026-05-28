@@ -1,0 +1,15 @@
+services:
+  devclean:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEVIN_API_TOKEN=${DEVIN_API_TOKEN}
+      - DEVIN_ORGANIZATION_ID=${DEVIN_ORGANIZATION_ID}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - DATABASE_URL=sqlite+aiosqlite:///./data/devclean.db
+    volumes:
+      - devclean-data:/app/data
+
+volumes:
+  devclean-data:
