@@ -2,9 +2,11 @@
 
 Event-driven automation that detects code quality issues in a GitHub repository and uses [Devin AI](https://devin.ai) to create fix PRs with structured issue documentation.
 
+**[DevClean Live](https://devclean.onrender.com/dashboard)**
+
 ## Issue Categories
 
-These categories target issues that require semantic understanding — things linters can't catch.
+These categories target issues that require semantic understanding of the whole repository — issues linters can't catch.
 
 | Code | Category | Description |
 |------|----------|-------------|
