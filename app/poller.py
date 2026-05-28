@@ -83,6 +83,29 @@ async def _process_completed_session(analysis_id: int, session_details: dict) ->
             await database_session.commit()
             return
 
+        # Resolve fix_pr_url from structured output first, then fall back to
+        # the top-level pull_requests array on the session object (v3 API).
+        fix_pr_url = (structured_output or {}).get("fix_pr_url")
+        if not fix_pr_url:
+            pull_requests = session_details.get("pull_requests") or []
+            if pull_requests:
+                fix_pr_url = pull_requests[0].get("pr_url")
+
+        # If a fix PR exists, mark done immediately — don't require structured
+        # output to be present (Devin may still be running when the PR appears).
+        if fix_pr_url:
+            issues_list = (structured_output or {}).get("issues", [])
+            if issues_list:
+                analysis_record.issues_found = json.dumps(issues_list)
+                analysis_record.issue_count = len(issues_list)
+            else:
+                analysis_record.issue_count = analysis_record.issue_count or 0
+            analysis_record.fix_pr_url = fix_pr_url
+            analysis_record.analysis_status = "fix_pr_created"
+            await database_session.commit()
+            logger.info("Analysis %d completed: fix_pr_created", analysis_id)
+            return
+
         if not structured_output:
             analysis_record.analysis_status = "error"
             analysis_record.error_message = "No structured output returned from Devin session"
@@ -93,26 +116,14 @@ async def _process_completed_session(analysis_id: int, session_details: dict) ->
         issues_list = structured_output.get("issues", [])
         summary = structured_output.get("summary", "")
 
-        # Prefer fix_pr_url from structured output; fall back to the top-level
-        # pull_requests array that the v3 API returns on the session object.
-        fix_pr_url = structured_output.get("fix_pr_url")
-        if not fix_pr_url:
-            pull_requests = session_details.get("pull_requests") or []
-            if pull_requests:
-                fix_pr_url = pull_requests[0].get("pr_url")
-
         if issues_list:
             analysis_record.issues_found = json.dumps(issues_list)
             analysis_record.issue_count = len(issues_list)
         else:
             analysis_record.issue_count = 0
 
-        analysis_record.fix_pr_url = fix_pr_url
-
         if not issues_detected:
             analysis_record.analysis_status = "no_issues_found"
-        elif fix_pr_url:
-            analysis_record.analysis_status = "fix_pr_created"
         else:
             analysis_record.analysis_status = "error"
             analysis_record.error_message = summary or "Issues found but no fix PR was created"
