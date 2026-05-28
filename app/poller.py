@@ -8,7 +8,7 @@ from app.models import CodeQualityAnalysis
 
 logger = logging.getLogger(__name__)
 
-TERMINAL_SESSION_STATUSES = {"exit", "error"}
+TERMINAL_SESSION_STATUSES = {"exit", "error", "suspended"}
 SETTLED_STATUS_DETAILS = {"finished", "waiting_for_user"}
 
 
@@ -85,8 +85,15 @@ async def _process_completed_session(analysis_id: int, session_details: dict) ->
 
         issues_detected = structured_output.get("issues_found", False)
         issues_list = structured_output.get("issues", [])
-        fix_pr_url = structured_output.get("fix_pr_url")
         summary = structured_output.get("summary", "")
+
+        # Prefer fix_pr_url from structured output; fall back to the top-level
+        # pull_requests array that the v3 API returns on the session object.
+        fix_pr_url = structured_output.get("fix_pr_url")
+        if not fix_pr_url:
+            pull_requests = session_details.get("pull_requests") or []
+            if pull_requests:
+                fix_pr_url = pull_requests[0].get("pr_url")
 
         if issues_list:
             analysis_record.issues_found = json.dumps(issues_list)
