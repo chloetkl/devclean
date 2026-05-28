@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup — DevClean</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-900 antialiased min-h-screen">
+
+    <!-- Header -->
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div class="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
+                     style="background:#3969CA;">D</div>
+                <span class="font-semibold text-lg tracking-tight">Dev<span style="color:#3969CA;">Clean</span></span>
+            </div>
+            {% if config.devin_api_token and config.devin_organization_id and config.github_webhook_secret %}
+            <a href="/dashboard" class="text-sm px-4 py-1.5 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
+               style="background:#3969CA;">Go to Dashboard →</a>
+            {% else %}
+            <span class="text-sm px-4 py-1.5 rounded-lg font-medium text-gray-300 border border-gray-200 cursor-not-allowed">
+                Go to Dashboard →
+            </span>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-12">
+
+        <!-- Page title -->
+        <div class="mb-10">
+            <h1 class="text-2xl font-semibold tracking-tight mb-2">Get started with DevClean</h1>
+            <p class="text-gray-500 text-sm">Complete the steps below to connect your repositories and let Devin automatically detect and fix code quality issues.</p>
+        </div>
+
+        <!-- Status banner -->
+        {% if config.devin_api_token and config.devin_organization_id and config.github_webhook_secret %}
+        <div class="mb-8 flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium"
+             style="background:#f0fdf4; border-color:#bbf7d0; color:#21C19A;">
+            ✅ All set — DevClean is fully configured.
+        </div>
+        {% else %}
+        <div class="mb-8 flex items-center gap-2 px-4 py-3 rounded-lg border text-sm"
+             style="background:#f0f4ff; border-color:#c7d2fe; color:#3969CA;">
+            ⚡ Complete the steps below to activate DevClean.
+        </div>
+        {% endif %}
+
+        <!-- Steps -->
+        <div class="flex flex-col gap-6">
+
+            <!-- Step 1: Devin credentials -->
+            <div class="rounded-xl border p-6 {% if config.devin_api_token and config.devin_organization_id %}border-green-200 bg-green-50{% else %}border-gray-200 bg-white{% endif %}">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                         style="background:{% if config.devin_api_token and config.devin_organization_id %}#21C19A{% else %}#3969CA{% endif %};">1</div>
+                    <h2 class="font-semibold text-gray-900">Configure Devin credentials</h2>
+                    {% if config.devin_api_token and config.devin_organization_id %}
+                    <span class="ml-auto text-xs font-medium" style="color:#21C19A;">✓ Complete</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col gap-2 mb-4">
+                    <div class="flex items-center gap-2 text-sm {% if config.devin_api_token %}text-green-700{% else %}text-red-500{% endif %}">
+                        <span>{% if config.devin_api_token %}✅{% else %}❌{% endif %}</span>
+                        <span class="font-mono text-xs">DEVIN_API_TOKEN{% if not config.devin_api_token %} — not set{% endif %}</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm {% if config.devin_organization_id %}text-green-700{% else %}text-red-500{% endif %}">
+                        <span>{% if config.devin_organization_id %}✅{% else %}❌{% endif %}</span>
+                        <span class="font-mono text-xs">DEVIN_ORGANIZATION_ID{% if not config.devin_organization_id %} — not set{% endif %}</span>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-500">
+                    Get your API token and org ID from
+                    <a href="https://app.devin.ai/settings/api-keys" target="_blank"
+                       class="font-medium hover:underline" style="color:#3969CA;">Devin API settings</a>.
+                    Set them as environment variables in your deployment.
+                </p>
+            </div>
+
+            <!-- Step 2: GitHub webhook -->
+            <div class="rounded-xl border p-6 {% if config.github_webhook_secret %}border-green-200 bg-green-50{% else %}border-gray-200 bg-white{% endif %}">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                         style="background:{% if config.github_webhook_secret %}#21C19A{% else %}#3969CA{% endif %};">2</div>
+                    <h2 class="font-semibold text-gray-900">Configure GitHub webhook</h2>
+                    {% if config.github_webhook_secret %}
+                    <span class="ml-auto text-xs font-medium" style="color:#21C19A;">✓ Secret configured</span>
+                    {% endif %}
+                </div>
+
+                <p class="text-sm text-gray-500 mb-4">
+                    In your GitHub repo go to <strong class="text-gray-700">Settings → Webhooks → Add webhook</strong> and fill in:
+                </p>
+
+                <div class="rounded-lg border border-gray-200 overflow-hidden mb-4 text-sm">
+                    <div class="flex border-b border-gray-100">
+                        <span class="w-36 px-4 py-2.5 text-xs text-gray-400 font-medium bg-gray-50 flex-shrink-0">Payload URL</span>
+                        <div class="flex items-center justify-between flex-1 px-4 py-2.5 gap-2">
+                            <span id="webhook-url" class="font-mono text-xs text-gray-700 break-all">{{ webhook_url }}</span>
+                            <button onclick="copyText('webhook-url', this)"
+                                    class="text-xs px-2.5 py-1 rounded border border-gray-200 text-gray-400 hover:text-gray-700 transition-colors flex-shrink-0">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex border-b border-gray-100">
+                        <span class="w-36 px-4 py-2.5 text-xs text-gray-400 font-medium bg-gray-50 flex-shrink-0">Content type</span>
+                        <span class="px-4 py-2.5 font-mono text-xs text-gray-700">application/json</span>
+                    </div>
+                    <div class="flex border-b border-gray-100">
+                        <span class="w-36 px-4 py-2.5 text-xs text-gray-400 font-medium bg-gray-50 flex-shrink-0">Events</span>
+                        <span class="px-4 py-2.5 text-xs text-gray-700">Pull requests</span>
+                    </div>
+                    <div class="flex">
+                        <span class="w-36 px-4 py-2.5 text-xs text-gray-400 font-medium bg-gray-50 flex-shrink-0">Secret</span>
+                        <span class="px-4 py-2.5 text-xs text-gray-500">a random string you generate (see below)</span>
+                    </div>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-2">Generate a secure secret with:</p>
+                <div class="flex items-center justify-between bg-gray-900 text-gray-100 rounded-lg px-4 py-3 font-mono text-xs mb-4">
+                    <span id="secret-cmd">openssl rand -hex 32</span>
+                    <button onclick="copyText('secret-cmd', this)"
+                            class="text-xs px-2.5 py-1 rounded border border-gray-600 text-gray-400 hover:text-white transition-colors ml-4 flex-shrink-0">
+                        Copy
+                    </button>
+                </div>
+
+                <p class="text-sm text-gray-500 mb-3">
+                    Set the same value as <code class="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded">GITHUB_WEBHOOK_SECRET</code> in your deployment environment.
+                </p>
+
+                <div class="flex items-center gap-2 text-sm {% if config.github_webhook_secret %}text-green-700{% else %}text-red-500{% endif %}">
+                    <span>{% if config.github_webhook_secret %}✅{% else %}❌{% endif %}</span>
+                    <span class="font-mono text-xs">GITHUB_WEBHOOK_SECRET{% if not config.github_webhook_secret %} — not set{% endif %}</span>
+                </div>
+            </div>
+
+            <!-- Step 3: Ready -->
+            <div class="rounded-xl border p-6 {% if config.devin_api_token and config.devin_organization_id and config.github_webhook_secret %}border-green-200 bg-green-50{% else %}border-gray-200 bg-white{% endif %}">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                         style="background:{% if config.devin_api_token and config.devin_organization_id and config.github_webhook_secret %}#21C19A{% else %}#3969CA{% endif %};">3</div>
+                    <h2 class="font-semibold text-gray-900">You're ready</h2>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">
+                    Open any PR on your connected repository. Devin will automatically analyze it for code quality issues
+                    (duplicate code, dead code, documentation drift, platform bugs) and open a fix PR if needed.
+                </p>
+                {% if config.devin_api_token and config.devin_organization_id and config.github_webhook_secret %}
+                <a href="/dashboard"
+                   class="inline-block text-sm px-5 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
+                   style="background:#3969CA;">
+                    Go to Dashboard →
+                </a>
+                {% else %}
+                <span class="inline-block text-sm px-5 py-2 rounded-lg font-medium text-gray-300 border border-gray-200 cursor-not-allowed">
+                    Complete steps above first
+                </span>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function copyText(elementId, btn) {
+            navigator.clipboard.writeText(document.getElementById(elementId).textContent.trim()).then(() => {
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.color = '#21C19A';
+                setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>
