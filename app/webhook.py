@@ -53,7 +53,7 @@ async def handle_github_webhook_event(
     event_payload = json.loads(raw_payload_body)
     webhook_action = event_payload.get("action")
 
-    if webhook_action != "opened":
+    if webhook_action not in ("opened", "reopened"):
         return {"message": f"Ignoring pull_request action: {webhook_action}"}
 
     pull_request_data = event_payload.get("pull_request", {})
